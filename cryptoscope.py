@@ -1,15 +1,18 @@
 import pprint
 from tkinter import *
 from tkinter import ttk
+from PIL import Image, ImageTk
 from tkinter import messagebox as mb
 import requests
 import json
+from io import BytesIO
 
 
 def update_cryptocurrency_label(event):
     code = cryptocurrency_combobox.get()
     name = cryptocurrency_id_name_dict[code]
     cryptocurrency_label.config(text=name)
+    set_image(code)
 
 
 def update_currency_label(event):
@@ -72,6 +75,44 @@ def crypto_lists():
         mb.showerror("Error", str(e))
 
 
+def load_image(code):
+    img_url = ""
+
+    try:
+
+        url = "https://api.coingecko.com/api/v3/asset_platforms"
+        headers = {
+            "accept": "application/json",
+            "x-cg-api-key": "CG-fdB222bEAD3nQxkDWGKkb2gbyjD"
+
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        for asset in data:
+            if asset['id'] == code:
+                img_urls = asset['image']
+                img_url = img_urls['small']
+                break
+
+        print(img_url)
+        response = requests.get(img_url)
+        image_data = BytesIO(response.content)
+        img = Image.open(image_data)
+        img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        return ImageTk.PhotoImage(img)
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        return None
+
+
+def set_image(code):
+    img = load_image(code)
+    if img:
+        cryptocurrency_label.config(image=img)
+        cryptocurrency_label.image = img
+
+
 crypt_id_name = {}
 
 cryptocurrency_id_name_dict = {
@@ -102,7 +143,7 @@ currency_id_name_dict = {
 
 window = Tk()
 window.title("CryptoScope 0.3")
-window.geometry("424x460")
+window.geometry("424x424")
 window.configure(background='gray')
 
 crypto_lists()
@@ -116,6 +157,7 @@ cryptocurrency_combobox.grid(row=1, column=0, padx=4, pady=4, sticky=NSEW)
 cryptocurrency_combobox.bind("<<ComboboxSelected>>", update_cryptocurrency_label)
 cryptocurrency_combobox.current(0)
 
+
 currency_combobox = ttk.Combobox(values=list(currency_id_name_dict), font=("Arial", 12))
 currency_combobox.current(0)
 currency_combobox.grid(row=1, column=1, padx=4, pady=4, sticky=NSEW)
@@ -124,6 +166,7 @@ currency_combobox.bind("<<ComboboxSelected>>", update_currency_label)
 cryptocurrency_label = ttk.Label(font=("Arial", 12))
 cryptocurrency_label.grid(row=2, column=0, padx=4, pady=4, sticky=NSEW)
 update_cryptocurrency_label(list(cryptocurrency_id_name_dict)[0])
+
 
 currency_label = ttk.Label(font=("Arial", 12))
 currency_label.grid(row=2, column=1, padx=4, pady=4, sticky=NSEW)
