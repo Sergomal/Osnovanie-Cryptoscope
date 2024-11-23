@@ -52,7 +52,7 @@ def exchange():
 
 
 def crypto_lists():
-    global crypt_id_name, count
+    global crypt_id_name
     url = "https://api.coingecko.com/api/v3/coins/list"
 
     headers = {
@@ -61,11 +61,15 @@ def crypto_lists():
 
     }
 
-    response = requests.get(url, headers=headers)
-    data = response.json()
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
 
-    for crypta in data:
-        crypt_id_name.update({crypta['id']: crypta['name']})
+        for crypta in data:
+            crypt_id_name.update({crypta['id']: crypta['name']})
+    except Exception as e:
+        mb.showerror("Error", str(e))
 
 
 crypt_id_name = {}
@@ -97,41 +101,38 @@ currency_id_name_dict = {
 }
 
 window = Tk()
-window.title("CryptoScope 0.2")
-window.geometry("360x460")
+window.title("CryptoScope 0.3")
+window.geometry("424x460")
 window.configure(background='gray')
-window.configure(highlightbackground='gray')
 
 crypto_lists()
 
-Label(text="Введите код криптовалюты").pack(padx=10, pady=10)
+Label(text="Введите код криптовалюты", font=("Arial", 12)).grid(row=0, column=0, padx=4, pady=4, sticky=NSEW)
+Label(text="Валюта платежа", font=("Arial", 12)).grid(row=0, column=1, padx=4, pady=4, sticky=NSEW)
 
-cryptocurrency_combobox = ttk.Combobox(values=list(cryptocurrency_id_name_dict))
+cryptocurrency_combobox = ttk.Combobox(values=list(cryptocurrency_id_name_dict), font=("Arial", 12))
 cryptocurrency_combobox.current(0)
-cryptocurrency_combobox.pack(padx=10, pady=10)
+cryptocurrency_combobox.grid(row=1, column=0, padx=4, pady=4, sticky=NSEW)
 cryptocurrency_combobox.bind("<<ComboboxSelected>>", update_cryptocurrency_label)
 cryptocurrency_combobox.current(0)
 
-
-cryptocurrency_label = ttk.Label()
-cryptocurrency_label.pack(padx=10, pady=10)
-update_cryptocurrency_label(list(cryptocurrency_id_name_dict)[0])
-
-Label(text="Валюта платежа").pack(padx=10, pady=10)
-
-currency_combobox = ttk.Combobox(values=list(currency_id_name_dict))
+currency_combobox = ttk.Combobox(values=list(currency_id_name_dict), font=("Arial", 12))
 currency_combobox.current(0)
-currency_combobox.pack(padx=10, pady=10)
+currency_combobox.grid(row=1, column=1, padx=4, pady=4, sticky=NSEW)
 currency_combobox.bind("<<ComboboxSelected>>", update_currency_label)
 
-currency_label = ttk.Label()
-currency_label.pack(padx=10, pady=10)
+cryptocurrency_label = ttk.Label(font=("Arial", 12))
+cryptocurrency_label.grid(row=2, column=0, padx=4, pady=4, sticky=NSEW)
+update_cryptocurrency_label(list(cryptocurrency_id_name_dict)[0])
+
+currency_label = ttk.Label(font=("Arial", 12))
+currency_label.grid(row=2, column=1, padx=4, pady=4, sticky=NSEW)
 update_currency_label(list(currency_id_name_dict)[0])
 
-Button(text="Получить курс обмена", command=exchange).pack(padx=10, pady=10)
+Button(text="Получить курс обмена", font=("Arial", 12), command=exchange).grid(row=3, column=0, columnspan=2, padx=4,
+                                                                               pady=4, sticky=NSEW)
 
-
-rate_label = ttk.Label(text="Выберите код криптовалюты и валюту платежа,\nчтобы узнать курс обмена")
-rate_label.pack(padx=10, pady=10)
+rate_label = ttk.Label(text="Выберите код криптовалюты и валюту платежа,\nчтобы узнать курс обмена", font=("Arial", 12))
+rate_label.grid(row=4, column=0, columnspan=2, padx=4, pady=4, sticky=NSEW)
 
 window.mainloop()
